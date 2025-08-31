@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Diyarbakır • Yönetim</title>
+<style>
+  :root{
+    --bg:#0a0f16; --sidebar:#0f1622; --panel:#101827; --card:#0d1420;
+    --bd:#1c2533; --fg:#e8f0f6; --muted:#8aa0b2;
+    --pri:#3ea6ff; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+    --chip:#172133; --shadow:0 10px 30px rgba(0,0,0,.35);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:linear-gradient(180deg,#08101a,#0a0f16 80%);color:var(--fg);font:14px/1.5 system-ui,Segoe UI,Roboto}
+  a{color:inherit}
+
+  .layout{display:grid;grid-template-columns:240px 1fr;min-height:100%}
+  .side{background:var(--sidebar);border-right:1px solid var(--bd);padding:16px;position:sticky;top:0;height:100vh}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 18px var(--ok)}
+  .menu{margin:18px 0 0;display:grid;gap:6px}
+  .menu button{all:unset;display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;cursor:pointer;color:var(--fg);border:1px solid transparent}
+  .menu button:hover{background:#0b1220;border-color:var(--bd)}
+  .menu button.active{background:linear-gradient(180deg,#1a2235,#151f2f);border-color:#243249}
+  .menu .ico{width:22px;text-align:center;opacity:.9}
+
+  .main{display:grid;grid-template-rows:auto 1fr;min-height:100vh}
+  .topbar{position:sticky;top:0;z-index:10;background:rgba(16,24,39,.75);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd)}
+  .top-inner{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .chip{background:var(--chip);border:1px solid var(--bd);border-radius:999px;padding:6px 10px;color:var(--muted);font-weight:600}
+
+  .btnTop{border:1px solid var(--bd);background:#152238;color:#fff;padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:700}
+  .btnTop:hover{filter:brightness(1.05)}
+
+  input,select,textarea{background:#0b1220;border:1px solid var(--bd);color:#fff;border-radius:10px;padding:10px}
+  input::placeholder,textarea::placeholder{color:#6b7b8a}
+  .btn{border:1px solid var(--bd);background:#152238;color:#fff;padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:700}
+  .btn.primary{background:var(--pri);color:#03121d;border-color:#2474b6}
+  .btn.ok{background:var(--ok);color:#062012;border-color:#157d3d}
+  .btn.warn{background:var(--warn);color:#120a00;border-color:#9a6508}
+  .btn.danger{background:var(--bad);color:#fff;border-color:#a42828}
+  .btn.ghost{background:#0f1727}
+
+  main{padding:16px}
+  .panel{background:linear-gradient(180deg,#0e1727,#0e1b2d);border:1px solid var(--bd);border-radius:18px;box-shadow:var(--shadow);padding:14px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .grow{flex:1}
+
+  .table{width:100%;border-collapse:separate;border-spacing:0 8px}
+  .table th,.table td{padding:10px 12px;text-align:left;vertical-align:top}
+  .table thead th{font-size:12px;color:#9fb4c4;text-transform:uppercase;letter-spacing:.3px}
+  .row{background:var(--card);border:1px solid var(--bd);border-radius:12px}
+  .row td:first-child{border-top-left-radius:12px;border-bottom-left-radius:12px}
+  .row td:last-child{border-top-right-radius:12px;border-bottom-right-radius:12px}
+  .pill{padding:4px 8px;border-radius:999px;border:1px solid var(--bd);background:#0b1220;font-size:12px}
+  .pill.pub{background:rgba(34,197,94,.12);border-color:#1a7f45;color:#8de6a7}
+  .pill.pending{background:rgba(245,158,11,.12);border-color:#9a6508;color:#ffd08a}
+  .pill.draft{background:rgba(148,163,184,.12);border-color:#3b485a;color:#b9c6d5}
+  .pill.rej{background:rgba(239,68,68,.12);border-color:#a12c2c;color:#ffaaaa}
+  .star{filter:drop-shadow(0 0 8px rgba(255,215,0,.4))}
+  .ph{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:#0b1220;border:1px solid var(--bd);font-weight:700;color:#7fc1ff}
+
+  .pagi{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:8px}
+  .muted{color:var(--muted)}
+
+  .modal[hidden]{display:none}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;z-index:50}
+  .modal-body{background:#0f1622;border:1px solid var(--bd);border-radius:16px;min-width:320px;max-width:720px;width:92vw;padding:14px}
+  .modal h3{margin:0 0 6px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media (max-width:900px){ .layout{grid-template-columns:1fr} .side{position:static;height:auto} .grid2{grid-template-columns:1fr} }
+
+  .toast{position:fixed;right:16px;bottom:16px;background:#0b1220;border:1px solid var(--bd);color:#e8f0f6;padding:12px 14px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.3);display:none}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="side">
+    <div class="brand"><span class="dot"></span><span id="brandTitle">Diyarbakır Yönetim</span></div>
+    <div class="menu" id="menu">
+      <button class="active" data-tab="places" id="tabBtnPlaces"><span class="ico">📍</span><span>Yerler</span></button>
+      <button data-tab="comments" id="tabBtnComments"><span class="ico">💬</span><span>Yorumlar</span></button>
+      <button data-tab="users" id="tabBtnUsers"><span class="ico">👤</span><span>Kullanıcılar</span></button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="top-inner">
+        <div class="chips">
+          <span id="apiChip" class="chip" title="API tabanı">API: -</span>
+          <span id="whoami" class="chip" title="Rol ve kullanıcı">role: -</span>
+        </div>
+        <div>
+          <button id="btnLogout" class="btnTop">Çıkış</button>
+        </div>
+      </div>
+    </div>
+
+    <main>
+      <!-- PLACES -->
+      <section id="tab-places" class="panel">
+        <div class="toolbar" id="placesToolbar">
+          <select id="statusFilter">
+            <option value="">Tümü</option>
+            <option>Draft</option>
+            <option>Pending</option>
+            <option>Published</option>
+          </select>
+          <input id="search" class="grow" placeholder="Ara (ad, etiket, açıklama)">
+          <button class="btn" id="btnReload">Yenile</button>
+          <button class="btn ok" id="btnAddNew">Yeni Yer</button>
+          <div class="chip">Toplam: <b id="count">-</b></div>
+        </div>
+
+        <div class="toolbar" id="placesBulkBar">
+          <div class="muted">Seçili satırlar:</div>
+          <button class="btn ok" id="bulkPublish">Yayınla</button>
+          <button class="btn warn" id="bulkPending">Beklemeye Al</button>
+          <button class="btn danger" id="bulkDelete">Sil</button>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="chkAll"></th>
+              <th data-sort="id">ID ▲▼</th>
+              <th data-sort="name">Ad ▲▼</th>
+              <th>Durum</th>
+              <th>Featured</th>
+              <th>Sorgu</th>
+              <th>Etiketler</th>
+              <th style="text-align:right">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="placeTbody"></tbody>
+        </table>
+
+        <div class="pagi">
+          <span class="muted" id="pagiInfo">–</span>
+          <button class="btn" id="prevPage">◀</button>
+          <button class="btn" id="nextPage">▶</button>
+        </div>
+      </section>
+
+      <!-- COMMENTS -->
+      <section id="tab-comments" class="panel" hidden>
+        <div class="toolbar">
+          <select id="cStatus">
+            <option selected>All</option>
+            <option>Pending</option>
+            <option>Approved</option>
+            <option>Rejected</option>
+          </select>
+          <input id="cSearch" class="grow" placeholder="Yorumda / kullanıcıda / yerde ara">
+          <button class="btn" id="btnLoadComments">Yükle</button>
+          <div class="chip">Toplam: <b id="cCount">-</b></div>
+        </div>
+
+        <div class="toolbar" id="commentsBulkBar">
+          <div class="muted">Seçili yorumlar:</div>
+          <button class="btn ok" id="cBulkApprove">Onayla</button>
+          <button class="btn warn" id="cBulkReject">Reddet</button>
+          <button class="btn danger" id="cBulkDelete">Sil</button>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="chkAllC"></th>
+              <th data-csort="id">ID ▲▼</th>
+              <th data-csort="placeName">Yer ▲▼</th>
+              <th data-csort="userName">Kullanıcı ▲▼</th>
+              <th data-csort="createdAt">Tarih ▲▼</th>
+              <th data-csort="status">Durum ▲▼</th>
+              <th>Yorum</th>
+              <th style="text-align:right">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="cTbody"></tbody>
+        </table>
+
+        <div class="pagi">
+          <span class="muted" id="cPagiInfo">–</span>
+          <button class="btn" id="cPrev">◀</button>
+          <button class="btn" id="cNext">▶</button>
+        </div>
+      </section>
+
+      <!-- USERS -->
+      <section id="tab-users" class="panel" hidden>
+        <div class="toolbar" id="usersToolbar">
+          <input id="userSearch" class="grow" placeholder="Ara: kullanıcı adı, e-posta, rol">
+          <button class="btn" id="btnRefreshUsers">Yenile</button>
+          <div class="chip">Toplam: <b id="userCount">-</b></div>
+        </div>
+
+        <div class="toolbar" id="usersBulkBar">
+          <div class="muted">Seçili kullanıcılar:</div>
+          <select id="bulkRoleSel">
+            <option value="">Rol ata…</option>
+            <option>User</option><option>SuperUser</option><option>Supervisor</option><option>Admin</option>
+          </select>
+          <button class="btn ok" id="bulkRoleApply">Rolü Uygula</button>
+          <button class="btn danger" id="bulkUserDelete">Sil</button>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="chkAllU"></th>
+              <th data-usort="id">ID ▲▼</th>
+              <th data-usort="username">Kullanıcı Adı ▲▼</th>
+              <th data-usort="email">E-posta ▲▼</th>
+              <th data-usort="role">Rol ▲▼</th>
+              <th data-usort="createdAt">Oluşturulma ▲▼</th>
+              <th style="text-align:right">İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="userTbody"></tbody>
+        </table>
+
+        <div class="pagi">
+          <span class="muted" id="uPagiInfo">–</span>
+          <button class="btn" id="uPrev">◀</button>
+          <button class="btn" id="uNext">▶</button>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- EDIT PLACE MODAL -->
+<div class="modal" id="editModal" hidden>
+  <div class="modal-body">
+    <h3 id="mTitle">Yer Düzenle</h3>
+    <form id="formPlace" class="grid2">
+      <input name="id" type="hidden"/>
+      <label>Ad <input name="name" required></label>
+      <label>Durum
+        <select name="status">
+          <option>Draft</option><option>Pending</option><option>Published</option>
+        </select>
+      </label>
+      <label>Görsel URL <input name="imageUrl" placeholder="https://…"></label>
+      <label>Featured mı?
+        <select name="isFeatured"><option value="false">Hayır</option><option value="true">Evet</option></select>
+      </label>
+      <label>Etiketler <input name="tags" placeholder="a,b,c"></label>
+      <label>Harita Sorgusu <input name="query" placeholder="Ulu Cami, Diyarbakır"></label>
+      <label class="grid2" style="grid-column:1/-1">Açıklama
+        <textarea name="description" rows="4"></textarea>
+      </label>
+      <div style="grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn" data-close="#editModal">Kapat</button>
+        <button class="btn primary" type="submit">Kaydet</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- EDIT USER MODAL -->
+<div class="modal" id="editUserModal" hidden>
+  <div class="modal-body">
+    <h3>Kullanıcı Düzenle</h3>
+    <form id="formUser" class="grid2">
+      <input name="id" type="hidden"/>
+      <label>Kullanıcı Adı <input name="username" required></label>
+      <label>E-posta <input name="email" type="email" required></label>
+      <div style="grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn" data-close="#editUserModal">Kapat</button>
+        <button class="btn primary" type="submit">Kaydet</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- EDIT COMMENT MODAL -->
+<div class="modal" id="editCommentModal" hidden>
+  <div class="modal-body">
+    <h3>Yorum Düzenle</h3>
+    <form id="formComment">
+      <input name="id" type="hidden"/>
+      <label>Durum
+        <select name="status">
+          <option>Pending</option><option>Approved</option><option>Rejected</option>
+        </select>
+      </label>
+      <label>Metin
+        <textarea name="body" rows="4" placeholder="Yorum metni"></textarea>
+      </label>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn" data-close="#editCommentModal">Kapat</button>
+        <button class="btn primary" type="submit">Kaydet</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ACCESS / LOGIN MODAL -->
+<div class="modal" id="guardModal" hidden>
+  <div class="modal-body">
+    <h3>Yönetim Girişi</h3>
+    <p class="muted" style="margin-top:0">Admin veya Supervisor hesabınızla giriş yapın.</p>
+    <form id="adminLogin" style="display:grid;gap:8px;margin-top:8px">
+      <input name="id" placeholder="Kullanıcı adı veya e-posta" required />
+      <input name="pwd" type="password" placeholder="Parola" required minlength="6" />
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn primary" type="submit">Giriş Yap</button>
+        <a class="btn" href="index.html">Index’e Dön</a>
+      </div>
+      <small class="muted">Geliştirme modunda cookie çalışmazsa otomatik token ile devam edilir.</small>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ===== Config & helpers ===== */
+const BASE = (localStorage.getItem('apiBase') || 'http://localhost:5017/api').replace(/\/$/,'');
+const $  = (s)=>document.querySelector(s);
+const $$ = (s)=>Array.from(document.querySelectorAll(s));
+const escapeHtml = (str)=> (str??"").replace(/[&<>"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s]||s));
+const toast=(msg)=>{const t=$("#toast");t.textContent=msg;t.className="toast show";setTimeout(()=>t.className="toast",2200);};
+
+let AUTH_TOKEN = localStorage.getItem('authToken') || '';
+
+const fx = (pathOrFull, opt={})=>{
+  const url = String(pathOrFull).startsWith('http') ? pathOrFull : (BASE + pathOrFull);
+  const headers = {...(opt.headers||{})};
+  if (AUTH_TOKEN) headers['Authorization'] = 'Bearer ' + AUTH_TOKEN;
+  return fetch(url, { credentials:'include', headers, ...opt });
+};
+
+$("#apiChip").textContent = "API: " + BASE;
+
+let ME = null;
+let IS_ADMIN=false, IS_SUP=false;
+const roleName = (r)=> String(r||'').trim().toLowerCase();
+const allowAny = (role)=> ['admin','supervisor'].includes(roleName(role));
+
+function openModal(sel){ const m=$(sel); if(m) m.hidden=false; }
+function closeModal(sel){ const m=$(sel); if(m) m.hidden=true; }
+document.addEventListener('click',(e)=>{ const c=e.target.getAttribute?.('data-close'); if(c) closeModal(c); });
+
+/* ===== Auth / whoami ===== */
+async function refreshMe(showLoginOnFail=true){
+  try{
+    const r = await fx('/me');
+    if(!r.ok) throw r.status;
+    ME = await r.json();
+    IS_ADMIN = roleName(ME.role)==='admin';
+    IS_SUP   = roleName(ME.role)==='supervisor';
+
+    $("#whoami").textContent = `role: ${ME.role||'-'} · ${ME.username||ME.email||'-'}`;
+    if(!allowAny(ME.role)){ if(showLoginOnFail) openModal('#guardModal'); return; }
+
+    if (IS_SUP && !IS_ADMIN){
+      $('#tabBtnPlaces').style.display='none';
+      $('#tabBtnUsers').style.display='none';
+      $('#tab-places').hidden = true;
+      $('#tab-users').hidden  = true;
+      $('#tabBtnComments').classList.add('active');
+      $('#tab-comments').hidden = false;
+      $('#brandTitle').textContent = 'Diyarbakır Moderasyon';
+      loadComments();
+    }else{
+      reload(); // Places varsayılan
+    }
+  }catch{
+    $("#whoami").textContent = "role: -";
+    if(showLoginOnFail) openModal('#guardModal');
+  }
+}
+
+// Login akışı: önce /auth/login (cookie), olmazsa /__login-debug (Bearer)
+$("#adminLogin").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const f=e.target;
+  const id=f.id.value.trim(), pwd=f.pwd.value;
+
+  // 1) Cookie tabanlı dene
+  try{
+    await fx('/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ usernameOrEmail:id, password:pwd }) });
+  }catch{}
+
+  await new Promise(res=>setTimeout(res,150)); // cookie set için min gecikme
+  const rMe = await fx('/me');
+  if (rMe.ok){
+    closeModal('#guardModal');
+    await refreshMe(false);
+    return;
+  }
+
+  // 2) Debug token fallback
+  try{
+    const root = BASE.replace(/\/api$/,'');
+    const r2 = await fetch(root + '/__login-debug', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ usernameOrEmail:id, password:pwd }) });
+    if(r2.ok){
+      const j = await r2.json();
+      if(j.ok && j.token){
+        AUTH_TOKEN = j.token;
+        localStorage.setItem('authToken', AUTH_TOKEN);
+        closeModal('#guardModal');
+        await refreshMe(false);
+        return;
+      }
+    }
+  }catch{}
+
+  toast('Giriş başarısız');
+});
+
+$("#btnLogout").addEventListener("click", async ()=>{
+  try{ await fx('/auth/logout', { method:'POST' }); }catch(e){}
+  AUTH_TOKEN=''; localStorage.removeItem('authToken');
+  location.href = 'index.html';
+});
+
+/* ===== Tabs ===== */
+$("#menu").addEventListener("click",(e)=>{
+  const btn=e.target.closest("button"); if(!btn) return;
+  const tab=btn.dataset.tab;
+
+  if (IS_SUP && !IS_ADMIN && (tab==="places" || tab==="users")) return;
+
+  $$("#menu button").forEach(x=>x.classList.remove("active")); btn.classList.add("active");
+  $("#tab-places").hidden   = tab!=="places";
+  $("#tab-comments").hidden = tab!=="comments";
+  $("#tab-users").hidden    = tab!=="users";
+
+  if(tab==="places"   && IS_ADMIN) reload();
+  if(tab==="comments") loadComments();
+  if(tab==="users"    && IS_ADMIN) loadUsers();
+});
+
+/* ===== PLACES (Admin-only) ===== */
+let places=[], sortKey="id", sortDir=1, page=1, pageSize=10, selected=new Set();
+
+function sortBy(a,b){
+  const va=a[sortKey], vb=b[sortKey];
+  if(va==null && vb!=null) return -1*sortDir;
+  if(vb==null && va!=null) return 1*sortDir;
+  if(typeof va==="string") return va.localeCompare(vb)*sortDir;
+  return (va>vb?1:va<vb?-1:0)*sortDir;
+}
+function pageItems(arr){ const start=(page-1)*pageSize; return arr.slice(start,start+pageSize); }
+
+async function reload(){
+  if(!IS_ADMIN) return;
+  try{
+    const status=$("#statusFilter").value, q=$("#search").value.trim();
+    const url=new URL(BASE+"/admin/places"); if(status) url.searchParams.set("status",status); if(q) url.searchParams.set("q",q);
+    const r=await fx(url.toString());
+    if(!r.ok){ toast("Yetki/istek hatası"); return; }
+    places=await r.json(); $("#count").textContent=places.length; page=1; renderTable();
+  }catch(e){ console.error(e); toast("Yükleme hatası"); }
+}
+
+function renderTable(){
+  const tb=$("#placeTbody"); tb.innerHTML="";
+  if(!IS_ADMIN){
+    tb.innerHTML = `<tr class="row"><td colspan="8" class="muted" style="padding:12px">Bu alan sadece Admin içindir.</td></tr>`;
+    $("#pagiInfo").textContent="—";
+    return;
+  }
+  const sorted=[...places].sort(sortBy);
+  const slice=pageItems(sorted);
+  for(const p of slice){
+    const tr=document.createElement("tr"); tr.className="row";
+    tr.innerHTML=`
+      <td><input type="checkbox" data-id="${p.id}" ${selected.has(p.id)?"checked":""}></td>
+      <td>${p.id}</td>
+      <td><div style="display:flex;align-items:center;gap:8px">
+            <div class="ph">${(p.name||"?").slice(0,2).toUpperCase()}</div>
+            <div><b>${escapeHtml(p.name||"")}</b></div>
+          </div></td>
+      <td>${statusPill(p.status)}</td>
+      <td>${p.isFeatured?'<span class="star">⭐</span>':''}</td>
+      <td class="muted">${escapeHtml(p.query||"")}</td>
+      <td class="muted">${escapeHtml((p.tags||"").split(",").slice(0,4).join(", "))}</td>
+      <td style="text-align:right">
+        ${p.status!=="Published"
+          ? `<button class="btn ok" data-act="pub" data-id="${p.id}">Yayınla</button>`
+          : `<button class="btn warn" data-act="pend" data-id="${p.id}">Beklemeye Al</button>`}
+        <button class="btn" data-act="edit" data-id="${p.id}">Düzenle</button>
+        <button class="btn danger" data-act="del" data-id="${p.id}">Sil</button>
+      </td>`;
+    tb.appendChild(tr);
+  }
+  const total=Math.max(1,Math.ceil(places.length/pageSize));
+  $("#pagiInfo").textContent=`Sayfa ${page}/${total}`;
+  const slice2=pageItems([...places].sort(sortBy));
+  $("#chkAll").checked = slice2.length && slice2.every(x=>selected.has(x.id));
+}
+function statusPill(s){
+  const m={Published:"pill pub", Pending:"pill pending", Draft:"pill draft"}; return `<span class="${m[s]||'pill'}">${s||'-'}</span>`;
+}
+
+$("#btnReload").addEventListener("click", reload);
+$("#statusFilter").addEventListener("change", ()=>reload());
+$("#search").addEventListener("input", debounce(()=>reload(),350));
+$("#prevPage").addEventListener("click", ()=>{ if(page>1){page--; renderTable();} });
+$("#nextPage").addEventListener("click", ()=>{ const total=Math.max(1,Math.ceil(places.length/pageSize)); if(page<total){page++; renderTable();} });
+
+$("#placeTbody").addEventListener("click", async (e)=>{
+  if(!IS_ADMIN) return;
+  const id = Number(e.target.dataset.id);
+  if(e.target.matches('input[type="checkbox"]')) return;
+  if(!id) return;
+  if(e.target.dataset.act==="pub"){ await post(`/admin/places/${id}/publish`,"POST"); reload(); }
+  if(e.target.dataset.act==="pend"){ await post(`/admin/places/${id}/pending`,"POST"); reload(); }
+  if(e.target.dataset.act==="del"){ if(confirm("Silinsin mi?")){ await post(`/admin/places/${id}`,"DELETE"); reload(); } }
+  if(e.target.dataset.act==="edit"){ openEditModal(id); }
+});
+$("#placeTbody").addEventListener("change",(e)=>{
+  if(!IS_ADMIN) return;
+  if(e.target.matches('input[type="checkbox"]')){
+    const id=Number(e.target.dataset.id);
+    e.target.checked ? selected.add(id) : selected.delete(id);
+    const slice=pageItems([...places].sort(sortBy));
+    $("#chkAll").checked = slice.length && slice.every(x=>selected.has(x.id));
+  }
+});
+$("#chkAll").addEventListener("change",()=>{
+  if(!IS_ADMIN) return;
+  const slice=pageItems([...places].sort(sortBy));
+  for(const p of slice){ if($("#chkAll").checked) selected.add(p.id); else selected.delete(p.id); }
+  renderTable();
+});
+$$('[data-sort]').forEach(th=>{
+  th.style.cursor="pointer";
+  th.addEventListener("click",()=>{ const key=th.getAttribute('data-sort'); sortDir = (sortKey===key?-sortDir:1); sortKey=key; renderTable(); });
+});
+async function bulk(ids, fn){ for(const id of ids){ await fn(id); } }
+$("#bulkPublish").addEventListener("click", async ()=>{ if(!IS_ADMIN) return; const ids=[...selected]; await bulk(ids, id=>post(`/admin/places/${id}/publish`,"POST")); selected.clear(); reload(); });
+$("#bulkPending").addEventListener("click", async ()=>{ if(!IS_ADMIN) return; const ids=[...selected]; await bulk(ids, id=>post(`/admin/places/${id}/pending`,"POST")); selected.clear(); reload(); });
+$("#bulkDelete").addEventListener("click", async ()=>{
+  if(!IS_ADMIN) return;
+  const ids=[...selected]; if(!ids.length) return;
+  if(!confirm(`${ids.length} kayıt silinsin mi?`)) return;
+  await bulk(ids, id=>post(`/admin/places/${id}`,"DELETE")); selected.clear(); reload();
+});
+
+/* Add / Edit (Admin) */
+$("#btnAddNew").addEventListener("click", ()=>{ if(IS_ADMIN) openEditModal(); });
+async function openEditModal(id){
+  if(!IS_ADMIN) return;
+  const form=$("#formPlace"); form.reset();
+  $("#mTitle").textContent = id ? "Yer Düzenle" : "Yeni Yer";
+  if(id){
+    const r=await fx('/admin/places'); const list = r.ok?await r.json():[];
+    const p=list.find(x=>x.id===id); if(!p){ toast("Kayıt bulunamadı"); return; }
+    form.id.value=p.id; form.name.value=p.name||""; form.status.value=p.status||"Draft";
+    form.imageUrl.value=p.imageUrl||""; form.isFeatured.value=String(!!p.isFeatured);
+    form.tags.value=p.tags||""; form.query.value=p.query||""; form.description.value=p.description||"";
+  }else{
+    form.status.value="Draft"; form.isFeatured.value="false";
+  }
+  openModal('#editModal');
+}
+$("#formPlace").addEventListener("submit", async (e)=>{
+  if(!IS_ADMIN) return;
+  e.preventDefault();
+  const f=e.target;
+  const payload={
+    id: f.id.value?Number(f.id.value):undefined,
+    name: f.name.value.trim(),
+    status: f.status.value,
+    imageUrl: f.imageUrl.value.trim()||null,
+    isFeatured: f.isFeatured.value==="true",
+    tags: f.tags.value.trim()||null,
+    query: f.query.value.trim()||null,
+    description: f.description.value.trim()||null
+  };
+  if(!payload.name){ toast("Ad gerekli"); return; }
+  if(payload.id){
+    const r=await fx('/admin/places'); const list=r.ok?await r.json():[]; const cur=list.find(x=>x.id===payload.id)||{};
+    const ok = await post(`/admin/places/${payload.id}`, "PUT", JSON.stringify({ ...cur, ...payload }), true);
+    if(ok){ toast("Güncellendi"); closeModal('#editModal'); reload(); }
+  }else{
+    const ok = await post(`/admin/places`, "POST", JSON.stringify({
+      name: payload.name, status: payload.status, imageUrl: payload.imageUrl,
+      isFeatured: payload.isFeatured, tags: payload.tags, query: payload.query, description: payload.description
+    }), true);
+    if(ok){ toast("Eklendi"); closeModal('#editModal'); reload(); }
+  }
+});
+
+/* ===== COMMENTS ===== */
+let comments=[], cSel=new Set(), cSortKey="id", cSortDir=1, cPage=1, cPageSize=10;
+
+function commentPill(s){
+  const map={Approved:'pill pub', Pending:'pill pending', Rejected:'pill rej'};
+  return `<span class="${map[s]||'pill'}">${s}</span>`;
+}
+function cPageItems(arr){ const start=(cPage-1)*cPageSize; return arr.slice(start,start+cPageSize); }
+function cSortBy(a,b){
+  const k=cSortKey; let va=a[k], vb=b[k];
+  if(k==='createdAt'){ va=new Date(a.createdAt).getTime(); vb=new Date(b.createdAt).getTime(); }
+  if(va==null && vb!=null) return -1*cSortDir; if(vb==null && va!=null) return 1*cSortDir;
+  if(typeof va==="string") return va.localeCompare(String(vb))*cSortDir;
+  return (va>vb?1:va<vb?-1:0)*cSortDir;
+}
+async function loadComments(){
+  const status = $("#cStatus").value;
+  const q = $("#cSearch").value.trim();
+  const url = new URL(BASE + "/mod/comments");
+  if(status) url.searchParams.set("status", status);
+  if(q) url.searchParams.set("q", q);
+  const r = await fx(url.toString());
+  if(!r.ok){ toast("Yükleme hatası"); return; }
+  comments = await r.json();
+  cSel.clear(); cPage=1; renderComments();
+}
+function renderComments(){
+  $("#cCount").textContent = comments.length;
+  const tb=$("#cTbody"); tb.innerHTML="";
+  const sorted=[...comments].sort(cSortBy);
+  const slice=cPageItems(sorted);
+
+  for(const c of slice){
+    const tr=document.createElement("tr"); tr.className="row";
+    const place = c.placeName || ("Yer #"+c.placeId);
+    const dt = new Date(c.createdAt||Date.now()).toLocaleString();
+    tr.innerHTML=`
+      <td><input type="checkbox" data-id="${c.id}" ${cSel.has(c.id)?"checked":""}></td>
+      <td>${c.id}</td>
+      <td>${escapeHtml(place)}</td>
+      <td>${escapeHtml(c.userName||('Kullanıcı #'+c.userId))}</td>
+      <td class="muted">${dt}</td>
+      <td>${commentPill(c.status)}</td>
+      <td class="muted">${escapeHtml(c.body||"")}</td>
+      <td style="text-align:right">
+        ${c.status==="Pending" ? `<button class="btn ok" data-act="ap" data-id="${c.id}">Onayla</button>
+                                  <button class="btn warn" data-act="rej" data-id="${c.id}">Reddet</button>` : ``}
+        <button class="btn" data-act="editc" data-id="${c.id}">Düzenle</button>
+        <button class="btn danger" data-act="delc" data-id="${c.id}">Sil</button>
+      </td>`;
+    tb.appendChild(tr);
+  }
+  const total=Math.max(1,Math.ceil(comments.length/cPageSize));
+  $("#cPagiInfo").textContent=`Sayfa ${cPage}/${total}`;
+  const slice2=cPageItems([...comments].sort(cSortBy));
+  $("#chkAllC").checked = slice2.length && slice2.every(x=>cSel.has(x.id));
+}
+$("#btnLoadComments").addEventListener("click", loadComments);
+$("#cSearch").addEventListener("input", debounce(loadComments,250));
+$("#cStatus").addEventListener("change", loadComments);
+$("#cPrev").addEventListener("click", ()=>{ if(cPage>1){cPage--; renderComments();} });
+$("#cNext").addEventListener("click", ()=>{ const total=Math.max(1,Math.ceil(comments.length/cPageSize)); if(cPage<total){cPage++; renderComments();} });
+$$( '[data-csort]' ).forEach(th=>{
+  th.style.cursor='pointer';
+  th.addEventListener('click', ()=>{ const k=th.getAttribute('data-csort'); cSortDir = (cSortKey===k?-cSortDir:1); cSortKey=k; renderComments(); });
+});
+$("#cTbody").addEventListener("change",(e)=>{
+  if(e.target.matches('input[type="checkbox"]')){
+    const id=Number(e.target.dataset.id);
+    e.target.checked ? cSel.add(id) : cSel.delete(id);
+    const slice=cPageItems([...comments].sort(cSortBy));
+    $("#chkAllC").checked = slice.length && slice.every(x=>cSel.has(x.id));
+  }
+});
+$("#chkAllC").addEventListener("change",()=>{
+  const slice=cPageItems([...comments].sort(cSortBy));
+  for(const c of slice){ if($("#chkAllC").checked) cSel.add(c.id); else cSel.delete(c.id); }
+  renderComments();
+});
+$("#commentsBulkBar").addEventListener("click", async (e)=>{
+  if(e.target.id==='cBulkApprove'){ for(const id of [...cSel]) await post(`/mod/comments/${id}/approve`,"POST"); cSel.clear(); loadComments(); }
+  if(e.target.id==='cBulkReject'){  for(const id of [...cSel]) await post(`/mod/comments/${id}/reject`,"POST");  cSel.clear(); loadComments(); }
+  if(e.target.id==='cBulkDelete'){  if(!cSel.size) return; if(!confirm(`${cSel.size} yorum silinsin mi?`)) return;
+    for(const id of [...cSel]) await post(`/mod/comments/${id}`,"DELETE"); cSel.clear(); loadComments();
+  }
+});
+$("#cTbody").addEventListener("click", async (e)=>{
+  const id = Number(e.target.dataset.id); if(!id) return;
+  if(e.target.dataset.act==="ap"){ await post(`/mod/comments/${id}/approve`,"POST"); loadComments(); }
+  if(e.target.dataset.act==="rej"){ await post(`/mod/comments/${id}/reject`,"POST"); loadComments(); }
+  if(e.target.dataset.act==="delc"){ if(confirm("Yorum silinsin mi?")){ await post(`/mod/comments/${id}`,"DELETE"); loadComments(); } }
+  if(e.target.dataset.act==="editc"){ openEditComment(id); }
+});
+function openEditComment(id){
+  const f=$("#formComment"); f.reset(); f.id.value=id;
+  const c = comments.find(x=>x.id===id); if(c){ f.status.value=c.status||'Pending'; f.body.value=c.body||''; }
+  openModal('#editCommentModal');
+}
+$("#formComment").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const f=e.target; const id=Number(f.id.value||0);
+  const payload={ status: f.status.value, body: f.body.value.trim() };
+  const r=await fx(`/mod/comments/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  if(r.ok){ toast('Yorum güncellendi'); closeModal('#editCommentModal'); loadComments(); }
+  else { toast('Güncellenemedi ('+r.status+')'); }
+});
+
+/* ===== USERS (Admin-only) ===== */
+let users=[], uSel=new Set(), uSortKey="id", uSortDir=1, uPage=1, uPageSize=10;
+const ROLES = ["User","SuperUser","Supervisor","Admin"];
+
+async function loadUsers(){
+  if(!IS_ADMIN) return;
+  const q = ($("#userSearch")?.value || '').trim();
+  const r = await fx('/admin/users' + (q?`?q=${encodeURIComponent(q)}`:''));
+  if (!r.ok){ toast('Kullanıcılar yüklenemedi'); return; }
+  users = await r.json();
+  uSel.clear(); uPage=1; renderUsers();
+}
+function uPageItems(arr){ const start=(uPage-1)*uPageSize; return arr.slice(start,start+uPageSize); }
+function uSortBy(a,b){
+  const k=uSortKey; let va=a[k], vb=b[k];
+  if(k==='createdAt'){ va=new Date(a.createdAt).getTime(); vb=new Date(b.createdAt).getTime(); }
+  if(va==null && vb!=null) return -1*uSortDir; if(vb==null && va!=null) return 1*uSortDir;
+  if(typeof va==="string") return va.localeCompare(String(vb))*uSortDir;
+  return (va>vb?1:va<vb?-1:0)*uSortDir;
+}
+function renderUsers(){
+  $("#userCount").textContent = users.length;
+  const tb = $("#userTbody"); tb.innerHTML = "";
+  const sorted=[...users].sort(uSortBy);
+  const slice=uPageItems(sorted);
+
+  for (const u of slice){
+    const tr = document.createElement('tr'); tr.className='row';
+    const isSelf = ME && ME.id === u.id;
+    tr.innerHTML = `
+      <td><input type="checkbox" data-id="${u.id}" ${uSel.has(u.id)?'checked':''} ${isSelf?'disabled':''}></td>
+      <td>${u.id}</td>
+      <td><b>${escapeHtml(u.username)}</b></td>
+      <td class="muted">${escapeHtml(u.email)}</td>
+      <td>
+        <select class="roleSel" data-id="${u.id}" ${isSelf?'disabled':''}>
+          ${ROLES.map(r=>`<option value="${r}" ${r===u.role?'selected':''}>${r}</option>`).join('')}
+        </select>
+      </td>
+      <td class="muted">${new Date(u.createdAt).toLocaleString()}</td>
+      <td style="text-align:right">
+        <button class="btn editUser" data-id="${u.id}">Düzenle</button>
+        <button class="btn saveRole" data-id="${u.id}" ${isSelf?'disabled title="Kendi rolünü değiştiremezsin"':''}>Rolü Kaydet</button>
+        ${isSelf? '' : `<button class="btn danger delUser" data-id="${u.id}">Sil</button>`}
+      </td>`;
+    tb.appendChild(tr);
+  }
+  const total=Math.max(1,Math.ceil(users.length/uPageSize));
+  $("#uPagiInfo").textContent=`Sayfa ${uPage}/${total}`;
+  const slice2=uPageItems([...users].sort(uSortBy));
+  $("#chkAllU").checked = slice2.length && slice2.every(x=>uSel.has(x.id) || (ME && ME.id===x.id));
+}
+$("#btnRefreshUsers").addEventListener("click", loadUsers);
+$("#userSearch").addEventListener("input", debounce(loadUsers, 350));
+$("#uPrev").addEventListener("click", ()=>{ if(uPage>1){uPage--; renderUsers();} });
+$("#uNext").addEventListener("click", ()=>{ const total=Math.max(1,Math.ceil(users.length/uPageSize)); if(uPage<total){uPage++; renderUsers();} });
+$$( '[data-usort]' ).forEach(th=>{
+  th.style.cursor='pointer';
+  th.addEventListener('click', ()=>{ const k=th.getAttribute('data-usort'); uSortDir = (uSortKey===k?-uSortDir:1); uSortKey=k; renderUsers(); });
+});
+$("#userTbody").addEventListener("change",(e)=>{
+  if(e.target.matches('input[type="checkbox"]')){
+    const id=Number(e.target.dataset.id);
+    if(ME && ME.id===id) return;
+    e.target.checked ? uSel.add(id) : uSel.delete(id);
+    const slice=uPageItems([...users].sort(uSortBy));
+    $("#chkAllU").checked = slice.length && slice.every(x=>uSel.has(x.id) || (ME && ME.id===x.id));
+  }
+});
+$("#chkAllU").addEventListener("change",()=>{
+  const slice=uPageItems([...users].sort(uSortBy));
+  for(const u of slice){
+    if(ME && ME.id===u.id) continue;
+    if($("#chkAllU").checked) uSel.add(u.id); else uSel.delete(u.id);
+  }
+  renderUsers();
+});
+$("#usersBulkBar").addEventListener("click", async (e)=>{
+  if(e.target.id==='bulkRoleApply'){
+    const role = $("#bulkRoleSel").value;
+    if(!role) return toast('Rol seçin');
+    for(const id of [...uSel]) await fx(`/admin/users/${id}/role`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ role }) });
+    uSel.clear(); loadUsers();
+  }
+  if(e.target.id==='bulkUserDelete'){
+    if(!uSel.size) return;
+    if(!confirm(`${uSel.size} kullanıcı silinsin mi?`)) return;
+    for(const id of [...uSel]) await fx(`/admin/users/${id}`, { method:'DELETE' });
+    uSel.clear(); loadUsers();
+  }
+});
+$("#userTbody").addEventListener("click", async (e)=>{
+  const id = Number(e.target.dataset.id); if(!id) return;
+
+  if(e.target.classList.contains('saveRole')){
+    const sel = e.target.closest('tr').querySelector('.roleSel');
+    const role = sel.value;
+    const r = await fx(`/admin/users/${id}/role`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ role }) });
+    if(r.ok){
+      const j = await r.json(); toast(`Rol: ${j.username} → ${j.role}`); loadUsers();
+    }else{
+      try{ const j=await r.json(); toast(j.message||('Kaydedilemedi ('+r.status+')')); }catch{ toast('Kaydedilemedi ('+r.status+')'); }
+    }
+  }
+
+  if(e.target.classList.contains('delUser')){
+    if(!confirm('Kullanıcı silinsin mi?')) return;
+    const r = await fx(`/admin/users/${id}`, { method:'DELETE' });
+    if(r.ok){ toast('Silindi'); loadUsers(); }
+    else{
+      try{ const j=await r.json(); toast(j.message || ('Silinemedi ('+r.status+')')); }
+      catch{ toast('Silinemedi ('+r.status+')'); }
+    }
+  }
+
+  if(e.target.classList.contains('editUser')){
+    const u = users.find(x=>x.id===id); if(!u) return;
+    const f=$("#formUser"); f.reset(); f.id.value=id; f.username.value=u.username||''; f.email.value=u.email||'';
+    openModal('#editUserModal');
+  }
+});
+$("#formUser").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const f=e.target; const id=Number(f.id.value||0);
+  const payload={ username: f.username.value.trim(), email: f.email.value.trim().toLowerCase() };
+  const r=await fx(`/admin/users/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  if(r.ok){ toast('Kullanıcı güncellendi'); closeModal('#editUserModal'); loadUsers(); }
+  else{
+    try{ const j=await r.json(); toast(j.message || ('Güncellenemedi ('+r.status+')')); }
+    catch{ toast('Güncellenemedi ('+r.status+')'); }
+  }
+});
+
+/* ===== Net helpers ===== */
+async function post(path, method, body=null, isJson=false){
+  const r = await fx(path,{ method, headers:(isJson?{"Content-Type":"application/json; charset=utf-8"}:undefined), body });
+  if(!r.ok){ toast("İşlem başarısız ("+r.status+")"); return false; }
+  return true;
+}
+function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); } }
+
+/* boot */
+document.addEventListener('DOMContentLoaded', ()=>refreshMe(true));
+</script>
+</body>
+</html>

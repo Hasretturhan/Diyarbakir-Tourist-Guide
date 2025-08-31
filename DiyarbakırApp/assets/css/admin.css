@@ -1,0 +1,216 @@
+/* ===== DiyarbakirApp • Admin Dark Theme =====
+   Accent: #2bd074  (uygulamadaki yeşil)
+   ---------------------------------------------------------- */
+
+:root{
+  --bg:        #0f1218;
+  --surface:   #121722;
+  --card:      #161c28;
+  --text:      #e6e8ee;
+  --muted:     #9aa3b2;
+  --border:    #262d3b;
+  --accent:    #2bd074;
+  --accent-2:  #19a25a;
+  --danger:    #ef4444;
+  --warn:      #f59e0b;
+  --ok:        #22c55e;
+  --radius:    16px;
+  --radius-sm: 10px;
+  --shadow:    0 12px 28px rgba(0,0,0,.35);
+  --focus:     0 0 0 3px rgba(43,208,116,.35);
+}
+
+*{ box-sizing:border-box }
+html,body{ height:100% }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font: 500 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+        Roboto, "Helvetica Neue", "Noto Sans", Arial, "Apple Color Emoji",
+        "Segoe UI Emoji";
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+h1,h2,h3{ margin:0 0 .6rem }
+h1{
+  font-size: clamp(26px, 2.2vw, 34px);
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+h2{ font-size: 18px; font-weight:700; color:#fff }
+small, .muted{ color:var(--muted) }
+
+.container{
+  max-width: 1180px;
+  margin: 32px auto 80px;
+  padding: 0 20px;
+}
+
+/* ---- Kart / panel ---- */
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.card + .card{ margin-top:18px }
+
+/* ---- Üst Ayar Çubuğu / Toolbar ---- */
+.toolbar{
+  display:grid;
+  gap:12px;
+  grid-template-columns: 1fr 220px 120px;
+  align-items:center;
+}
+.toolbar .muted{ justify-self:end }
+
+.row{
+  display:grid; gap:10px;
+  grid-template-columns: 180px 1fr 96px 120px;
+  align-items:center;
+}
+
+/* ---- Input/Select ---- */
+input[type="text"], input[type="search"], input[type="url"],
+input[type="number"], textarea, select{
+  width:100%;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border .2s, box-shadow .2s;
+}
+textarea{ min-height: 110px; resize: vertical }
+input::placeholder, textarea::placeholder{ color: #798396 }
+input:focus, textarea:focus, select:focus{
+  border-color: var(--accent);
+  box-shadow: var(--focus);
+}
+
+/* ---- Buttons ---- */
+.btn{
+  -webkit-tap-highlight-color: transparent;
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:.5rem;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #1a2130;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform .04s ease, background .2s, border .2s, opacity .2s;
+}
+.btn:hover{ background:#1d2637 }
+.btn:active{ transform: translateY(1px) }
+
+.btn.primary{
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  border: none;
+  color:#06140d;
+  font-weight: 700;
+}
+.btn.ghost{
+  background: transparent;
+  border:1px solid var(--border);
+}
+.btn.danger{
+  background:#2d1213; border:1px solid #552022; color:#ffd9d9;
+}
+.btn.warn{
+  background:#33240b; border:1px solid #5a3a0d; color:#ffe4b5;
+}
+.btn.small{ height:32px; padding:0 10px; font-size:13px }
+.btn.pill{ border-radius:999px }
+
+/* ---- Tablo ---- */
+.table-wrap{ overflow:auto; border-radius:12px; border:1px solid var(--border) }
+table{ width:100%; border-collapse:separate; border-spacing:0; min-width: 760px; }
+thead th{
+  text-align:left;
+  background:#121926;
+  color:#dbe1ec;
+  font-weight:700;
+  padding:12px 14px;
+  position: sticky; top:0; z-index:1;
+}
+tbody td{
+  padding:12px 14px;
+  border-top:1px solid var(--border);
+}
+tbody tr:hover td{ background:#131a27 }
+
+/* ID sütunu dar olsun */
+td.col-id{ width:64px; color:#cfd6e4 }
+
+/* İşlem butonları */
+.actions{ display:flex; gap:8px; flex-wrap: wrap }
+
+/* ---- Rozetler ---- */
+.badge{
+  display:inline-flex; align-items:center; gap:.45rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight:700; font-size:12px; letter-spacing:.2px;
+  border:1px solid transparent;
+}
+.badge.published{ background:#0d1f15; color:#9df2c2; border-color:#123b27 }
+.badge.pending{ background:#231a07; color:#ffda9c; border-color:#3b2a0c }
+.badge.draft{ background:#24131a; color:#ffc7d5; border-color:#3d1f29 }
+
+/* ---- Bölüm başlığı satırı ---- */
+.section-head{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; margin:2px 0 10px;
+}
+.section-head .right{ display:flex; gap:10px }
+
+/* ---- Form: “Yeni Place / Düzenle” ---- */
+.form-grid{
+  display:grid; gap:12px;
+  grid-template-columns: repeat(2, 1fr);
+}
+.form-grid .full{ grid-column: 1 / -1 }
+.label{
+  font-size:12px; color:var(--muted); margin:4px 2px 6px;
+}
+
+/* Checkbox */
+.switch{
+  display:inline-flex; align-items:center; gap:10px;
+  padding:8px 0; user-select:none; cursor:pointer;
+}
+.switch input{ width:18px; height:18px }
+
+/* ---- Küçük yardımcılar ---- */
+hr{ border:0; border-top:1px solid var(--border); margin:14px 0 }
+.kbd{ font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background:#0d1320; border:1px solid #1f2740; color:#cbd5e1;
+      padding:2px 6px; border-radius:6px; font-size:12px }
+
+/* ---- Responsive ---- */
+@media (max-width: 900px){
+  .toolbar{ grid-template-columns: 1fr; }
+  .row{ grid-template-columns: 1fr; }
+  .actions{ gap:6px }
+  .form-grid{ grid-template-columns: 1fr }
+  .container{ padding:0 14px }
+}
+
+/* ---- Linkler ---- */
+a{ color:#b6ffe0; text-decoration:none }
+a:hover{ text-decoration:underline }
+
+/* ---- Toast / küçük bildirimler (opsiyonel) ---- */
+.toast{
+  position:fixed; right:18px; bottom:18px;
+  background:#0f1a14; border:1px solid #264232; color:#bdf7d5;
+  padding:12px 14px; border-radius:12px; box-shadow: var(--shadow);
+  animation: toast-in .2s ease-out both;
+}
+@keyframes toast-in{ from{ transform: translateY(6px); opacity:.0 } to{ transform:none; opacity:1 } }

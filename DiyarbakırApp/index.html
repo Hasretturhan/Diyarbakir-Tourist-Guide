@@ -1,0 +1,282 @@
+<!doctype html> 
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DiyarbakırApp | Turist Rehberi</title>
+  <meta name="description" content="Diyarbakır'a gelen turistler için hızlı gezi rehberi ve 'nasıl giderim' aracı." />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+
+  <!-- Leaflet Routing Machine -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" crossorigin="anonymous" />
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <!-- ÜST BAR -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#home" class="brand">DiyarbakırApp</a>
+      <button class="nav-toggle" aria-label="Menüyü aç/kapat" aria-expanded="false">
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      </button>
+      <nav class="site-nav" role="navigation">
+        <ul>
+          <li><a href="#home"   data-i18n="nav.home">Ana Sayfa</a></li>
+          <li><a href="#map"    data-i18n="nav.map">Nasıl Giderim</a></li>
+          <li><a href="#places" data-i18n="nav.places">Gezilecek Yerler</a></li>
+          <li><a href="#about"  data-i18n="nav.about">Hakkımızda</a></li>
+          <li><a href="#contact" data-i18n="nav.contact">İletişim</a></li>
+          <li>
+            <button id="lang-toggle" class="btn small outline" style="margin-left:.25rem" aria-label="Change language">EN</button>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Auth alanı -->
+      <div id="auth-area" class="auth-area">
+        <button id="btn-open-login" class="btn small" data-i18n="auth.loginBtn">Giriş</button>
+        <button id="btn-open-register" class="btn small outline" data-i18n="auth.registerBtn">Kayıt Ol</button>
+
+        <div id="user-box" class="user-box" hidden>
+          <span id="user-name"></span>
+          <span id="user-role" class="badge"></span>
+          <a id="link-admin" href="admin.html" class="btn small outline" hidden data-i18n="auth.adminPanel">Admin Panel</a>
+          <a id="link-addplace-nav" href="#add-place" class="btn small outline" hidden data-i18n="auth.addPlace">Mekan Ekle</a>
+          <button id="btn-logout" class="btn small" data-i18n="auth.logout">Çıkış</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="app" class="container">
+    <!-- ANA SAYFA -->
+    <section id="home" class="route active" aria-labelledby="home-title">
+      <div class="hero">
+        <div class="hero-content">
+          <h1 id="home-title" data-i18n="home.title">Diyarbakır’a Hoş Geldiniz</h1>
+          <p data-i18n="home.subtitle">Sur içinden Hevsel’e, On Gözlü Köprü’den Ulu Cami’ye… Şehri keşfetmeye başlayın.</p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#map" data-i18n="home.ctaMap">Nasıl giderim?</a>
+            <a class="btn outline" href="#places" data-i18n="home.ctaPlaces">Gezilecek yerler</a>
+          </div>
+        </div>
+      </div>
+
+      <section class="highlights">
+        <h2 data-i18n="home.featured">Öne Çıkanlar</h2>
+        <div id="featured-grid" class="cards-grid grid-4"></div>
+      </section>
+    </section>
+
+    <!-- NASIL GİDERİM -->
+    <section id="map" class="route" aria-labelledby="map-title">
+      <h1 id="map-title" data-i18n="map.title">Nasıl Giderim?</h1>
+      <p class="muted" data-i18n="map.subtitle">Başlangıç ve hedefi gir; rota ve süreyi gösterelim. (Konum izni verirsen “Nereden” otomatik dolar.)</p>
+
+      <form class="directions-form" action="#" method="get">
+        <div class="form-row">
+          <label for="from" data-i18n="map.fromLabel">Nereden</label>
+          <div style="display:flex; gap:8px;">
+            <input id="from" name="from" type="text" placeholder="Mevcut konum veya adres" autocomplete="off" required />
+            <button type="button" id="use-my-location" class="btn outline" data-i18n="map.useMyLoc">Konumum</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="to" data-i18n="map.toLabel">Nereye</label>
+          <input id="to" name="to" type="text" placeholder="Örn: Ulu Cami, Diyarbakır" autocomplete="off" required />
+        </div>
+
+        <div class="form-row inline">
+          <div class="select">
+            <label for="mode" data-i18n="map.modeLabel">Ulaşım türü</label>
+            <select id="mode" name="mode">
+              <option value="walking" data-i18n="map.modeWalking">Yürüyerek</option>
+              <option value="driving" data-i18n="map.modeDriving">Arabayla</option>
+              <option value="cycling" data-i18n="map.modeCycling">Bisiklet</option>
+            </select>
+          </div>
+          <button class="btn primary" type="submit" data-i18n="map.submitRoute">Rota Göster</button>
+        </div>
+      </form>
+
+      <div id="map-canvas" class="map-canvas" role="img" aria-label="Harita ve rota alanı"></div>
+      <div id="route-output" class="directions-panel" aria-live="polite"></div>
+      <p class="muted" style="margin-top:8px;font-size:.85rem">
+        Harita verileri © OpenStreetMap katkıcıları • Rotalar OSRM ile hesaplanır.
+      </p>
+    </section>
+
+    <!-- GEZİLECEK YERLER -->
+    <section id="places" class="route" aria-labelledby="places-title">
+      <h1 id="places-title" data-i18n="places.title">Gezilecek Yerler</h1>
+      <div class="filters">
+        <input type="search" id="place-search" placeholder="Yer ara (örn: köprü, han, sur)..." />
+      </div>
+      <div id="places-grid" class="cards-grid grid-4"></div>
+    </section>
+
+    <!-- SuperUser/Admin/Supervisor: Mekan Ekle -->
+    <section id="add-place" class="route" hidden>
+      <h2>Mekan Ekle</h2>
+      <form id="form-addplace" class="stack">
+        <input name="name" placeholder="Ad" required />
+        <input name="imageUrl" placeholder="Görsel URL (opsiyonel)" />
+        <input name="tags" placeholder="Etiketler (a,b,c)" />
+        <input name="query" placeholder="Harita arama metni" />
+        <textarea name="description" placeholder="Açıklama"></textarea>
+        <button class="btn" type="submit">Kaydet</button>
+      </form>
+      <p class="muted">SuperUser ekledikleri otomatik <b>Draft</b> olur. Admin yayınlar.</p>
+    </section>
+
+    <!-- HAKKIMIZDA -->
+    <section id="about" class="route" aria-labelledby="about-title">
+      <h1 id="about-title" class="sr-only">Hakkımızda</h1>
+      <div class="about-hero hero">
+        <div class="hero-content center">
+          <h2 class="slogan" data-i18n="about.slogan">Diyarbakır’ı keşfetmenin en hızlı yolu.</h2>
+          <p class="muted" data-i18n="about.lead">
+            Şehrin tarihini ve doğasını özenle derledik; tek dokunuşla yerleri keşfedin, rotanızı çizin.
+          </p>
+        </div>
+      </div>
+      <section class="about-sections">
+        <div class="about-grid">
+          <article class="about-card">
+            <h3 data-i18n="about.missionTitle">Misyonumuz</h3>
+            <p data-i18n="about.missionText">
+              Ziyaretçilere <strong>güvenilir, hızlı ve sade</strong> bir deneyim sunarak
+              Diyarbakır’ın kültürel mirasını kolayca keşfetmelerini sağlamak; yerel ekonomiye ve
+              sürdürülebilir turizme katkıda bulunmak.
+            </p>
+          </article>
+          <article class="about-card">
+            <h3 data-i18n="about.visionTitle">Vizyonumuz</h3>
+            <p data-i18n="about.visionText">
+              Diyarbakır’ı dijitalde <strong>örnek bir şehir rehberi</strong> haline getirmek;
+              açık harita standartları ve modern teknolojilerle sürekli gelişen,
+              herkes için erişilebilir bir keşif deneyimi sunmak.
+            </p>
+          </article>
+        </div>
+      </section>
+    </section>
+
+    <!-- İLETİŞİM -->
+    <section id="contact" class="route" aria-labelledby="contact-title">
+      <h1 id="contact-title" data-i18n="contact.title">İletişim</h1>
+      <div class="contact-grid">
+        <div class="card">
+          <div class="card-body">
+            <h3 data-i18n="contact.reachUs">Bize Ulaşın</h3>
+            <ul class="contact-list">
+              <li><span class="icon" aria-hidden="true">📍</span><div><strong data-i18n="contact.address">Adres</strong><br><address>Diyarbakır – Merkez</address></div></li>
+              <li><span class="icon" aria-hidden="true">☎️</span><div><strong data-i18n="contact.phone">Telefon</strong><br><a href="tel:+905301234567">+90 530 123 45 67</a></div></li>
+              <li><span class="icon" aria-hidden="true">✉️</span><div><strong data-i18n="contact.email">E-posta</strong><br><a href="mailto:info@diyarbakirapp.com">info@diyarbakirapp.com</a></div></li>
+              <li><span class="icon" aria-hidden="true">🕘</span><div><strong data-i18n="contact.hours">Çalışma Saatleri</strong><br>Pzt–Cum • 09:00–18:00</div></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card contact-form-card">
+          <div class="card-body">
+            <h3 data-i18n="contact.sendMsg">Mesaj Gönder</h3>
+            <p class="muted center" data-i18n="contact.formLead">Görüş ve önerilerinizi form üzerinden iletebilirsiniz.</p>
+            <a class="btn primary large"
+               href="https://docs.google.com/forms/d/e/1FAIpQLSdCapixMDZhG44ma1o_aA3ThYy5QLjj6jSy1H3ccVhOmTLDrQ/viewform?usp=header"
+               target="_blank" rel="noopener" data-i18n="contact.openForm">İletişim Formunu Aç</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© <span id="y"></span> DiyarbakırApp • Tüm hakları saklıdır.</p>
+    </div>
+  </footer>
+
+  <!-- LOGIN MODAL -->
+  <div class="modal" id="login-modal" hidden>
+    <div class="modal-body">
+      <h3 data-i18n="login.title">Giriş Yap</h3>
+      <form id="form-login">
+        <input name="id"  placeholder="Kullanıcı adı veya e-posta" required />
+        <input name="pwd" type="password" placeholder="Parola" required minlength="6" />
+        <div class="modal-actions">
+          <button type="submit" class="btn">Giriş</button>
+          <button type="button" class="btn outline" data-close="#login-modal">Kapat</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- REGISTER MODAL -->
+  <div class="modal" id="register-modal" hidden>
+    <div class="modal-body">
+      <h3 data-i18n="register.title">Kayıt Ol</h3>
+      <form id="form-register">
+        <input name="username" placeholder="Kullanıcı adı" required minlength="3" />
+        <input name="email" type="email" placeholder="E-posta" required />
+        <input name="pwd" type="password" placeholder="Parola (min 6)" required minlength="6" />
+        <div class="modal-actions">
+          <button type="submit" class="btn">Kayıt Ol</button>
+          <button type="button" class="btn outline" data-close="#register-modal">Kapat</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ufak stil -->
+  <style>
+    /* gizleme davranışını garantiye al */
+    [hidden]{ display:none !important; }
+
+    .modal[hidden]{display:none}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:50}
+    .modal-body{background:#0f1622;border:1px solid #1c2533;border-radius:16px;padding:16px;min-width:320px;max-width:92vw}
+    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+    .auth-area{display:flex;gap:8px;align-items:center}
+    .user-box{display:none;align-items:center;gap:8px}
+    .user-box:not([hidden]){display:flex}
+    .user-box .badge{margin:0 6px}
+  </style>
+
+  <!-- SAĞ-ALT HIZLI MENÜ (opsiyonel) -->
+  <div id="fab" class="fab" hidden>
+    <button id="fab-main" class="fab-main" aria-label="Hızlı menü">☰</button>
+    <div class="fab-menu" id="fab-menu">
+      <a id="fab-addplace" href="#add-place" class="fab-item">➕ Mekan Ekle</a>
+      <a id="fab-admin"    href="admin.html"  class="fab-item">🛠️ Admin Panel</a>
+      <button id="fab-logout" class="fab-item">🚪 Çıkış</button>
+    </div>
+  </div>
+
+  <style>
+    .fab{position:fixed;right:18px;bottom:18px;z-index:9999}
+    .fab-main{
+      width:56px;height:56px;border-radius:999px;border:1px solid #2b3546;
+      background:#1a2233;color:#e8f0f6;font-size:20px;cursor:pointer;
+      box-shadow:0 10px 30px rgba(0,0,0,.35)
+    }
+    .fab.open .fab-main{transform:rotate(90deg)}
+    .fab-menu{position:absolute;right:0;bottom:66px;display:none;flex-direction:column;gap:8px}
+    .fab.open .fab-menu{display:flex}
+    .fab-item{
+      display:inline-block;background:#0f1622;border:1px solid #2b3546;color:#e8f0f6;
+      padding:10px 14px;border-radius:12px;text-decoration:none;cursor:pointer;
+      box-shadow:0 10px 30px rgba(0,0,0,.28);min-width:160px;text-align:left
+    }
+    .fab-item:hover{filter:brightness(1.06)}
+  </style>
+
+  <!-- TEK script: body SONUNDA -->
+  <script src="assets/js/app.js?v=final"></script>
+</body>
+</html>
